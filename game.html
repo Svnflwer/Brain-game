@@ -24,8 +24,7 @@
         <button class="btn" style="background:#2196f3; border-color:#2196f3; color:#fff;" onclick="playMath('minus')">➖ МИНУС (ВЫЧИТАНИЕ)</button>
         <button class="btn" style="background:#ff9800; border-color:#ff9800; color:#fff;" onclick="playMath('multiply')">✖️ УМНОЖЕНИЕ</button>
         <button class="btn" style="background:#9c27b0; border-color:#9c27b0; color:#fff;" onclick="playMath('divide')">➗ ДЕЛЕНИЕ</button>
-        <button class="btn" style="background:#f44336; border-color:#f44336; color:#fff;" onclick="playMath('fractions')">🍰 ДРОБИ</button>
-        <button class="btn" style="background:#333; border-color:#888; color:#fff; margin-top:15px;" onclick="window.location.href='index.html'">В МЕНЮ 🏠</button>
+        <button class="btn" style="background:#333; border-color:#888; color:#fff; margin-top:20px;" onclick="window.location.href='index.html'">В МЕНЮ 🏠</button>
     </div>
 
     <!-- САМА ИГРА -->
@@ -60,7 +59,7 @@
         }
 
         function makeMathQ() {
-            let a, b, qText, isFraction = false;
+            let a, b, qText;
             if (mathMode === 'plus') {
                 a = Math.floor(Math.random() * 70) + 10; b = Math.floor(Math.random() * 70) + 10; correctAns = String(a + b); qText = a + " + " + b + " = ?";
             } else if (mathMode === 'minus') {
@@ -69,9 +68,6 @@
                 a = Math.floor(Math.random() * 10) + 3; b = Math.floor(Math.random() * 8) + 2; correctAns = String(a * b); qText = a + " × " + b + " = ?";
             } else if (mathMode === 'divide') {
                 b = Math.floor(Math.random() * 8) + 2; let res = Math.floor(Math.random() * 9) + 2; a = b * res; correctAns = String(res); qText = a + " ÷ " + b + " = ?";
-            } else if (mathMode === 'fractions') {
-                isFraction = true; let top1 = Math.floor(Math.random() * 3) + 1, bottom = Math.floor(Math.random() * 3) + 4, top2 = Math.floor(Math.random() * 2) + 1;
-                correctAns = (top1 + top2) + "/" + bottom; qText = top1 + "/" + bottom + " + " + top2 + "/" + bottom + " = ?";
             }
             document.getElementById('m-question').innerText = qText;
             
@@ -79,14 +75,8 @@
             let limit = 0;
             while(choices.length < 4 && limit < 100) {
                 limit++;
-                let w;
-                if (isFraction) {
-                    let wrongTop = (top1 + top2) + (Math.floor(Math.random() * 5) - 2);
-                    if(wrongTop <= 0) wrongTop = 1; w = wrongTop + "/" + bottom;
-                } else { 
-                    let val = parseInt(correctAns);
-                    w = String(val + (Math.floor(Math.random() * 14) - 7));
-                }
+                let val = parseInt(correctAns);
+                let w = String(val + (Math.floor(Math.random() * 14) - 7));
                 if(w !== correctAns && parseInt(w) >= 0 && !choices.includes(w)) choices.push(w);
             }
             

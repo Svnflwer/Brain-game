@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Математика</title>
+    <style>
+        body { margin:0; padding:0; background:#0a0a14; color:white; font-family:sans-serif; text-align:center; user-select:none; touch-action:none; overflow:hidden; }
+        .screen { display:none; position:fixed; width:100vw; height:100vh; left:0; top:0; flex-direction:column; align-items:center; justify-content:center; box-sizing:border-box; padding:20px; }
+        .active { display:flex; }
+        .btn { padding:12px 20px; margin:6px; background:#1a1a3a; color:#00d2ff; border:2px solid #00d2ff; border-radius:12px; font-size:15px; font-weight:bold; cursor:pointer; width:85%; max-width:280px; box-shadow:0 0 10px rgba(0,210,255,0.2); text-transform:uppercase; outline:none; }
+        .btn:active { background:#00d2ff; color:#000; }
+        .u-panel { display:flex; align-items:center; gap:12px; position:absolute; top:20px; background:rgba(255,255,255,0.05); padding:5px 15px; border-radius:30px; border:1px solid rgba(0,210,255,0.3); }
+        .u-av { width:35px; height:35px; border-radius:50%; border:2px solid #00d2ff; object-fit:cover; background:#1a1a3a; }
+    </style>
+</head>
+<body>
+
+    <!-- ВЫБОР РЕЖИМА -->
+    <div id="scr-setup" class="screen active">
+        <div class="u-panel"><img class="u-av" id="m-av" src=""><span id="m-name" style="color:#00d2ff; font-weight:bold;"></span></div>
+        <h2 style="margin-top:60px; font-size:22px;">ВЫБЕРИ ТРЕНАЖЕР:</h2>
+        <button class="btn" style="background:#4caf50; border-color:#4caf50; color:#fff;" onclick="playMath('plus')">➕ ПЛЮС (СЛОЖЕНИЕ)</button>
+        <button class="btn" style="background:#2196f3; border-color:#2196f3; color:#fff;" onclick="playMath('minus')">➖ МИНУС (ВЫЧИТАНИЕ)</button>
+        <button class="btn" style="background:#ff9800; border-color:#ff9800; color:#fff;" onclick="playMath('multiply')">✖️ УМНОЖЕНИЕ</button>
+        <button class="btn" style="background:#9c27b0; border-color:#9c27b0; color:#fff;" onclick="playMath('divide')">➗ ДЕЛЕНИЕ</button>
+        <button class="btn" style="background:#f44336; border-color:#f44336; color:#fff;" onclick="playMath('fractions')">🍰 ДРОБИ</button>
+        <button class="btn" style="background:#333; border-color:#888; color:#fff; margin-top:15px;" onclick="window.location.href='index.html'">В МЕНЮ 🏠</button>
+    </div>
+
+    <!-- САМА ИГРА -->
+    <div id="scr-game" class="screen">
+        <div style="display:flex; justify-content:space-between; width:100%; max-width:300px; font-size:18px; font-weight:bold; color:#00d2ff;">
+            <div id="m-timer">⏱️ ВРЕМЯ: 30</div>
+            <div id="m-score">⭐ ОЧКИ: 0</div>
+        </div>
+        <div id="m-question" style="font-size:36px; font-weight:bold; margin:40px 0;">2 + 2 = ?</div>
+        <div id="m-answers" style="display:grid; grid-template-columns: 1fr 1fr; gap: 15px; width:100%; max-width:300px;"></div>
+    </div>
+
+    <script>
+        let score = 0, timeLeft = 30, gameInterval, correctAns = "", mathMode = 'plus';
+
+        document.getElementById('m-name').innerText = localStorage.getItem('userName') || "Игрок";
+        const savedAv = localStorage.getItem('userAvatar');
+        if(savedAv) document.getElementById('m-av').src = savedAv;
+
+        function setScreen(id) { document.querySelectorAll('.screen').forEach(s => s.classList.remove('active')); document.getElementById(id).classList.add('active'); }
+
+        function playMath(mode) {
+            mathMode = mode; score = 0; timeLeft = 30;
+            document.getElementById('m-score').innerText = '⭐ ОЧКИ: ' + score;
+            document.getElementById('m-timer').innerText = '⏱️ ВРЕМЯ: ' + timeLeft;
+            setScreen('scr-game'); makeMathQ();
+            clearInterval(gameInterval);
+            gameInterval = setInterval(() => {
+                timeLeft--; document.getElementById('m-timer').innerText = '⏱️ ВРЕМЯ: ' + timeLeft;
+                if(timeLeft <= 0) { clearInterval(gameInterval); alert('⏱️ Время вышло! Твои очки: ' + score); setScreen('scr-setup'); }
+            }, 1000);
+        }
+
+        function makeMathQ() {
+            let a, b, qText, isFraction = false;
+            if (mathMode === 'plus') {
+                a = Math.floor(Math.random() * 70) + 10; b = Math.floor(Math.random() * 70) + 10; correctAns = String(a + b); qText = a + " + " + b + " = ?";
+            } else if (mathMode === 'minus') {
+                a = Math.floor(Math.random() * 80) + 20; b = Math.floor(Math.random() * (a - 5)) + 1; correctAns = String(a - b); qText = a + " - " + b + " = ?";
+            } else if (mathMode === 'multiply') {
+                a = Math.floor(Math.random() * 10) + 3; b = Math.floor(Math.random() * 8) + 2; correctAns = String(a * b); qText = a + " × " + b + " = ?";
+            } else if (mathMode === 'divide') {
+                b = Math.floor(Math.random() * 8) + 2; let res = Math.floor(Math.random() * 9) + 2; a = b * res; correctAns = String(res); qText = a + " ÷ " + b + " = ?";
+            } else if (mathMode === 'fractions') {
+                isFraction = true; let top1 = Math.floor(Math.random() * 3) + 1, bottom = Math.floor(Math.random() * 3) + 4, top2 = Math.floor(Math.random() * 2) + 1;
+                correctAns = (top1 + top2) + "/" + bottom; qText = top1 + "/" + bottom + " + " + top2 + "/" + bottom + " = ?";
+            }
+            document.getElementById('m-question').innerText = qText;
+            
+            let choices = [correctAns];
+            let limit = 0;
+            while(choices.length < 4 && limit < 100) {
+                limit++;
+                let w;
+                if (isFraction) {
+                    let wrongTop = (top1 + top2) + (Math.floor(Math.random() * 5) - 2);
+                    if(wrongTop <= 0) wrongTop = 1; w = wrongTop + "/" + bottom;
+                } else { 
+                    let val = parseInt(correctAns);
+                    w = String(val + (Math.floor(Math.random() * 14) - 7));
+                }
+                if(w !== correctAns && parseInt(w) >= 0 && !choices.includes(w)) choices.push(w);
+            }
+            
+            while(choices.length < 4) { choices.push(String(parseInt(correctAns) + choices.length + 1)); }
+            choices.sort(() => Math.random() - 0.5);
+            
+            const box = document.getElementById('m-answers'); box.innerHTML = '';
+            choices.forEach(c => {
+                const btn = document.createElement('button'); btn.className = 'btn'; btn.style.width = '100%'; btn.innerText = c;
+                btn.onclick = () => { if(c === correctAns) { score += 10; } else { timeLeft = Math.max(0, timeLeft - 5); } document.getElementById('m-score').innerText = '⭐ ОЧКИ: ' + score; makeMathQ(); };
+                box.appendChild(btn);
+            });
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>2048 Головоломка</title>
+    <style>
+        body { margin:0; padding:0; background:#0a0a14; color:white; font-family:sans-serif; display:flex; flex-direction:column; align-items:center; justify-content:center; height:100vh; overflow:hidden; user-select:none; touch-action:none; }
+        .u-panel { display:flex; align-items:center; gap:12px; position:absolute; top:20px; background:rgba(255,255,255,0.05); padding:5px 15px; border-radius:30px; border:1px solid rgba(0,210,255,0.3); }
+        .u-av { width:35px; height:35px; border-radius:50%; border:2px solid #00d2ff; object-fit:cover; background:#1a1a3a; }
+        #score-box { font-size:22px; font-weight:bold; color:#00d2ff; text-shadow:0 0 10px #00d2ff; margin-top:70px; margin-bottom:15px; }
+        #g-2048 { width:280px; height:280px; background:#1a1a3a; border-radius:12px; padding:8px; display:grid; grid-template-columns:repeat(4,1fr); grid-gap:8px; box-sizing:border-box; box-shadow:0 0 20px rgba(0,210,255,0.2); }
+        .c-2048 { background:rgba(255,255,255,0.05); border-radius:6px; display:flex; align-items:center; justify-content:center; font-size:20px; font-weight:bold; }
+        .c2 { background:#00d2ff; color:#000; box-shadow:0 0 8px #00d2ff; }
+        .c4 { background:#00ffaa; color:#000; box-shadow:0 0 8px #00ffaa; }
+        .c8 { background:#ff9800; color:#fff; box-shadow:0 0 8px #ff9800; }
+        .c16 { background:#ff5722; color:#fff; box-shadow:0 0 8px #ff5722; }
+        .c32 { background:#e91e63; color:#fff; box-shadow:0 0 8px #e91e63; }
+        .c64, .c128, .c256, .c512, .c1024, .c2048 { background:#ff0055; color:#fff; box-shadow:0 0 10px #ff0055; }
+        .btn { padding:12px 25px; margin-top:25px; background:#1a1a3a; color:#00d2ff; border:2px solid #00d2ff; border-radius:12px; font-size:15px; font-weight:bold; cursor:pointer; width:85%; max-width:280px; text-transform:uppercase; }
+    </style>
+</head>
+<body>
+
+    <div class="u-panel">
+        <img class="u-av" id="m-av" src="">
+        <span id="m-name" style="color:#00d2ff; font-weight:bold;"></span>
+    </div>
+
+    <div id="score-box">СЧЕТ 2048: <span id="s-2048">0</span></div>
+    <div id="g-2048"></div>
+    
+    <button class="btn" onclick="window.location.href='index.html'">В МЕНЮ 🏠</button>
+
+    <script>
+        let b2048 = [], s2048 = 0;
+
+        document.getElementById('m-name').innerText = localStorage.getItem('userName') || "Игрок";
+        const savedAv = localStorage.getItem('userAvatar');
+        if(savedAv) document.getElementById('m-av').src = savedAv;
+
+        function start2048() { b2048 = Array(16).fill(0); s2048 = 0; document.getElementById('s-2048').innerText = s2048; sp2048(); sp2048(); dr2048(); }
+        function sp2048() { let e = []; b2048.forEach((v, i) => { if(v === 0) e.push(i); }); if (e.length > 0) b2048[e[Math.floor(Math.random()*e.length)]] = Math.random()>0.1?2:4; }
+        function dr2048() { const g = document.getElementById('g-2048'); g.innerHTML = ''; b2048.forEach(v => { const c = document.createElement('div'); c.className = 'c-2048' + (v?' c'+v:''); c.innerText = v?v:''; g.appendChild(c); }); }
+        function sl2048(r) { let a = r.filter(v => v); for (let i=0; i<a.length-1; i++) { if (a[i] === a[i+1]) { a[i] *= 2; s2048 += a[i]; a.splice(i+1, 1); } } while (a.length < 4) a.push(0); return a; }
+        function mv2048(d) {
+            let old = [...b2048];
+            for (let i = 0; i < 4; i++) {
+                let r = [];
+                if (d === 'left' || d === 'right') { r = b2048.slice(i*4, i*4+4); if (d === 'right') r.reverse(); r = sl2048(r); if (d === 'right') r.reverse(); for(let j=0; j<4; j++) b2048[i*4+j] = r[j]; }
+                else { for(let j=0; j<4; j++) r.push(b2048[j*4+i]); if (d === 'down') r.reverse(); r = sl2048(r); if (d === 'down') r.reverse(); for(let j=0; j<4; j++) b2048[j*4+i] = r[j]; }
+            }
+            if (JSON.stringify(old) !== JSON.stringify(b2048)) { sp2048(); document.getElementById('s-2048').innerText = s2048; dr2048(); chOver(); }
+        }
+        function chOver() { if (b2048.includes(0)) return; for (let i=0; i<4; i++) { for (let j=0; j<3; j++) { if (b2048[i*4+j]===b2048[i*4+j+1] || b2048[4*j+i]===b2048[4*(j+1)+i]) return; } } alert('Игра окончена! Счет: ' + s2048); start2048(); }
+        
+        let tX = 0, tY = 0; window.addEventListener('touchstart', e => { tX = e.touches.clientX; tY = e.touches.clientY; });
+        window.addEventListener('touchend', e => {
+            let dX = e.changedTouches.clientX - tX, dY = e.changedTouches.clientY - tY;
+            if (Math.abs(dX) > Math.abs(dY)) { if (Math.abs(dX) > 30) mv2048(dX > 0 ? 'right' : 'left'); }
+            else { if (Math.abs(dY) > 30) mv2048(dY > 0 ? 'down' : 'up'); }
+        });
+
+        start2048();
+    </script>
+</body>
+</html>
